@@ -13,26 +13,22 @@ class SoundAnalyzerGUI(QMainWindow):
         self.setWindowTitle("LAB TASK 5: Sound Level Analyzer")
         self.resize(1000, 600)
         
-        # --- Configuration ---
         self.port = "COM6"  # Change to your port
         self.baud = 9600
-        self.threshold = 300
+        self.threshold = 59.4
         self.start_time = time.time()
         
-        # --- Data Buffers ---
         self.plot_data = [] # For the scrolling graph
         self.event_log = [] # Stores (Timestamp, Value) for threshold breaks
         
         self.init_ui()
         
-        # --- Serial Setup ---
         try:
             self.ser = serial.Serial(self.port, self.baud, timeout=0.1)
         except Exception as e:
             print(f"Serial Error: {e}")
             self.ser = None
-
-        # Timer for non-blocking UI updates (20ms = 50Hz)
+          
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_all)
         self.timer.start(20)
@@ -41,8 +37,7 @@ class SoundAnalyzerGUI(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-
-        # LEFT SIDE: The Graph
+      
         left_container = QVBoxLayout()
         self.status_label = QLabel("STATUS: NORMAL")
         self.status_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2ecc71;")
@@ -54,7 +49,7 @@ class SoundAnalyzerGUI(QMainWindow):
 
         self.plot_widget = pg.PlotWidget(title="Live Sound Waveform")
         self.plot_widget.setBackground('k')
-        self.plot_widget.setYRange(0, 1024)
+        self.plot_widget.setYRange(30, 85)
 
         self.thresh_line = pg.InfiniteLine(pos=self.threshold, angle=0, pen=pg.mkPen('r', width=2, style=Qt.PenStyle.DashLine))
         self.plot_widget.addItem(self.thresh_line)
@@ -69,7 +64,6 @@ class SoundAnalyzerGUI(QMainWindow):
         left_container.addWidget(self.plot_widget)
         main_layout.addLayout(left_container, stretch=3)
 
-        # RIGHT SIDE: The Threshold Log
         right_container = QVBoxLayout()
         right_container.addWidget(QLabel("THRESHOLD VIOLATIONS LOG:"))
         self.log_list = QListWidget()
@@ -82,31 +76,26 @@ class SoundAnalyzerGUI(QMainWindow):
             try:
                 line = self.ser.readline().decode('utf-8').strip()
                 if line:
-                    value = int(line)
+                    value = float(line)
                     self.process_data(value)
             except Exception:
                 pass
 
     def process_data(self, val):
-        # 1. Update Plot Buffer
         self.plot_data.append(val)
         if len(self.plot_data) > 200: # Keep last 200 samples
             self.plot_data.pop(0)
         self.curve.setData(self.plot_data)
-
-        # 2. Check Threshold
+      
         if val > self.threshold:
             timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             entry = f"[{timestamp}] LOUD: {val}"
             
-            # Save to internal list (The "Storing" requirement)
             self.event_log.append((timestamp, val))
             
-            # Update GUI Log
             self.log_list.addItem(entry)
             self.log_list.scrollToBottom()
             
-            # Visual Alert
             self.status_label.setText("STATUS: LOUD EVENT DETECTED!")
             self.status_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #e74c3c;")
         else:
