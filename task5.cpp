@@ -42,7 +42,8 @@ void loop() {
       maxSample = currentRead;
     }
   }
-
+  float dB = 20 * log10(maxSample) + 40;
+  
   // 2. Use that peak for the LCD and Serial
   if (millis() - lastUpdate >= interval) {
     lastUpdate = millis();
@@ -50,8 +51,8 @@ void loop() {
 
     lcd.setCursor(0, 0);
     lcd.print("Level: ");
-    lcd.print(maxSample);
-    lcd.print("    ");
+    lcd.print(dB);
+    lcd.print(" dB   ");
 
     lcd.setCursor(0, 1);
     if (maxSample > THRESHOLD) {
