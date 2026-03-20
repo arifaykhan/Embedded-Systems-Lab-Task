@@ -10,6 +10,30 @@ volatile uint16_t ms_ticks = 0;
 
 uint8_t segment_map[] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
 
+void i2c_init() {
+    TWBR = 72; // Set 100kHz SCL frequency at 16MHz Clock
+}
+
+void rtc_enable_sqw() {
+    // Start -> Address + W -> Reg 0x07 -> Data 0x10 (1Hz Enable) -> Stop
+    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN); // Start
+    while (!(TWCR & (1 << TWINT)));
+    
+    TWDR = 0xD0; // DS1307 Write Address
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    while (!(TWCR & (1 << TWINT)));
+    
+    TWDR = 0x07; // Control Register
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    while (!(TWCR & (1 << TWINT)));
+    
+    TWDR = 0x10; // Enable SQWE, Set Rate to 1Hz
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    while (!(TWCR & (1 << TWINT)));
+    
+    TWCR = (1 << TWINT) | (1 << TWSTO) | (1 << TWEN); // Stop
+}
+
 void setup() {
   // 1. Data Direction
   DDRD |= 0xF0;  // PD4-PD7 (Segments a-d)
@@ -18,6 +42,9 @@ void setup() {
   // 2. Button with Pull-up
   DDRD &= ~(1 << DDD2);
   PORTD |= (1 << PORTD2); 
+
+  i2c_init();
+  rtc_enable_sqw();
 
   // 3. Interrupts - We use Pin 2 (Button) and Pin 3 (Clock)
   EICRA |= (1 << ISC01) | (1 << ISC11); // Falling edge
