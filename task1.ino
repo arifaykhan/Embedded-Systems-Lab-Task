@@ -13,7 +13,7 @@ void setup() {
   TCCR2A = (1 << COM2A0) | (1 << WGM21) | (1 << WGM20); // toggle OC2A on match
   TCCR2B = (1 << WGM22) | (1 << CS20);                 // no prescaler
   
-  OCR2A = 0;   // Toggle every clock cycle
+  OCR2A = 0;   // toggle every clock cycle
 }
 
 void loop() {
