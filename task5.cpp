@@ -60,7 +60,6 @@ void loop() {
       lcd.print("STATUS: Normal ");
     }
     
-    // ... rest of your LED reset logic ...
     if (soundTriggered) {
     PORTB |= (1 << PB5);     // Turn LED ON (Pin 13)
     ledOffTime = millis() + LED_DURATION; // Set future turn-off time
