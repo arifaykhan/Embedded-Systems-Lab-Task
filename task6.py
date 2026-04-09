@@ -5,8 +5,8 @@ import csv
 import os
 import random
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit)
-from PyQt6.QtCore import QThread, pyqtSignal
+                             QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QMessageBox)
+from PyQt6.QtCore import QThread, pyqtSignal    
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -106,6 +106,10 @@ class ReactionGame(QMainWindow):
         self.score_label.setText(f"Score: {self.p1_wins} - {self.p2_wins}")
         self.log_to_file(p1, p2, winner_id, r_time, is_false)
         self.update_chart(p1)
+
+        if self.p1_wins >= 3:
+         QMessageBox.information(self, "Match Over", f"{p1} Wins the Match!")
+         self.p1_wins, self.p2_wins = 0, 0 # Reset scores
 
     def log_to_file(self, p1, p2, winner_id, r_time, is_false):
         names = [p1, p2]
